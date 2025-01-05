@@ -1,31 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import Cta from "./cta";
 import { FaLocationArrow } from "react-icons/fa6";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/all";
+import VideoWrapper from "./video-wrapper";
 
 const TOTAL_VIDEOS_NUM = 4;
 
 const Hero = () => {
   const [isClient, setIsClient] = useState(false);
+  const mainVideoRef = useRef<HTMLVideoElement | null>(null);
   const growingVideoRef = useRef<HTMLVideoElement | null>(null);
-  const [videoIndex, setVideoIndex] = useState<number>(0);
+  const miniVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  const currentVideoIdxRef = useRef<number | null>(1);
+  const [videoIndex, setVideoIndex] = useState<number>(1);
   const [hasClicked, setHasClicked] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadedImagesNum, setLoadedImagesNum] = useState<number>(0);
 
-  const mainVideoIndex = useMemo(
-    () => (videoIndex === 0 ? TOTAL_VIDEOS_NUM - 1 : videoIndex - 1),
+  const miniVideoIndex = useMemo(
+    () => (videoIndex === TOTAL_VIDEOS_NUM ? 1 : videoIndex + 1),
     [videoIndex]
   );
-
-  const getVideoSrc = useCallback((idx: number) => {
-    return `/videos/hero-${idx + 1}.mp4`;
-  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(useGSAP);
@@ -54,7 +54,10 @@ const Hero = () => {
         });
       }
     },
-    { dependencies: [videoIndex, hasClicked, isClient], revertOnUpdate: true }
+    {
+      dependencies: [videoIndex, hasClicked, isClient, growingVideoRef.current],
+      revertOnUpdate: true,
+    }
   );
 
   // add main video cut effect on scroll
@@ -87,8 +90,11 @@ const Hero = () => {
     if (loadedImagesNum < TOTAL_VIDEOS_NUM) {
       setIsLoading(true);
     }
-    setVideoIndex((prev) => (prev + 1 === TOTAL_VIDEOS_NUM ? 0 : prev + 1));
-  }, [loadedImagesNum]);
+
+    currentVideoIdxRef.current = videoIndex;
+
+    setVideoIndex((prev) => (prev + 1 > TOTAL_VIDEOS_NUM ? 1 : prev + 1));
+  }, [loadedImagesNum, videoIndex]);
 
   const handleOnLoadedData = () => {
     if (loadedImagesNum <= TOTAL_VIDEOS_NUM) {
@@ -135,41 +141,33 @@ const Hero = () => {
           G<strong>a</strong>ming
         </h2>
 
-        <video
-          key={`main-video-${mainVideoIndex}`}
+        <VideoWrapper
           id="main-video"
-          src={getVideoSrc(mainVideoIndex)}
-          loop
-          muted
-          autoPlay
+          key={`main-video-${currentVideoIdxRef.current}`}
+          ref={mainVideoRef}
+          fileName={`hero-${currentVideoIdxRef.current}`}
           className="size-full origin-center object-center object-cover"
         />
-        <video
-          key={`growing-video-${videoIndex}`}
+
+        <VideoWrapper
           id="growing-video"
+          key={`growing-video-${videoIndex}`}
           ref={growingVideoRef}
-          src={getVideoSrc(videoIndex)}
-          loop
-          muted
+          fileName={`hero-${videoIndex}`}
           className="absolute-center invisible z-20 absolute size-full object-cover object-center"
         />
+
         {/* mini-video @ videoIndex + 1 */}
         <div className="absolute-center size-64 cursor-pointer z-50 rounded-lg  overflow-hidden">
           <div
             onClick={handleClickSmallVideo}
             className="origin-center overflow-hidden"
           >
-            <video
-              key={`mini-video-${
-                videoIndex + 1 === TOTAL_VIDEOS_NUM ? 0 : videoIndex + 1
-              }`}
+            <VideoWrapper
               id="mini-video"
-              src={getVideoSrc(
-                videoIndex + 1 === TOTAL_VIDEOS_NUM ? 0 : videoIndex + 1
-              )}
-              loop
-              muted
-              autoPlay
+              key={`mini-video-${miniVideoIndex}`}
+              ref={miniVideoRef}
+              fileName={`hero-${miniVideoIndex}`}
               onLoadedData={handleOnLoadedData}
               className="scale-75 opacity-0 transition-all size-64 origin-center object-center object-cover duration-500 hover:opacity-100 hover:scale-100"
             />

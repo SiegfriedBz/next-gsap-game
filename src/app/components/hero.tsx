@@ -6,11 +6,13 @@ import { FaLocationArrow } from "react-icons/fa6";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/all";
-import VideoWrapper from "./video-wrapper";
+import { HERO_IMG_NUM } from "../page";
 
-const TOTAL_VIDEOS_NUM = 4;
+type Props = {
+  videoUrlsMap: Record<number, string>;
+};
 
-const Hero = () => {
+const Hero = ({ videoUrlsMap }: Props) => {
   const [isClient, setIsClient] = useState(false);
   const mainVideoRef = useRef<HTMLVideoElement | null>(null);
   const growingVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -23,7 +25,7 @@ const Hero = () => {
   const [loadedImagesNum, setLoadedImagesNum] = useState<number>(0);
 
   const miniVideoIndex = useMemo(
-    () => (videoIndex === TOTAL_VIDEOS_NUM ? 1 : videoIndex + 1),
+    () => (videoIndex === HERO_IMG_NUM ? 1 : videoIndex + 1),
     [videoIndex]
   );
 
@@ -87,17 +89,17 @@ const Hero = () => {
 
   const handleClickSmallVideo = useCallback(() => {
     setHasClicked(true);
-    if (loadedImagesNum < TOTAL_VIDEOS_NUM) {
+    if (loadedImagesNum < HERO_IMG_NUM) {
       setIsLoading(true);
     }
 
     currentVideoIdxRef.current = videoIndex;
 
-    setVideoIndex((prev) => (prev + 1 > TOTAL_VIDEOS_NUM ? 1 : prev + 1));
+    setVideoIndex((prev) => (prev + 1 > HERO_IMG_NUM ? 1 : prev + 1));
   }, [loadedImagesNum, videoIndex]);
 
   const handleOnLoadedData = () => {
-    if (loadedImagesNum <= TOTAL_VIDEOS_NUM) {
+    if (loadedImagesNum <= HERO_IMG_NUM) {
       setLoadedImagesNum((prev) => prev + 1);
       setIsLoading(false);
     }
@@ -141,20 +143,30 @@ const Hero = () => {
           G<strong>a</strong>ming
         </h2>
 
-        <VideoWrapper
+        <video
           id="main-video"
-          key={`main-video-${currentVideoIdxRef.current}`}
           ref={mainVideoRef}
-          fileName={`hero-${currentVideoIdxRef.current}`}
+          key={`main-video-${currentVideoIdxRef.current}`}
+          src={videoUrlsMap[currentVideoIdxRef.current ?? 1]}
           className="size-full origin-center object-center object-cover"
+          preload="true"
+          loop
+          muted
+          autoPlay
+          aria-label="Video player"
         />
 
-        <VideoWrapper
+        <video
           id="growing-video"
           key={`growing-video-${videoIndex}`}
           ref={growingVideoRef}
-          fileName={`hero-${videoIndex}`}
+          src={videoUrlsMap[videoIndex]}
           className="absolute-center invisible z-20 absolute size-full object-cover object-center"
+          preload="true"
+          loop
+          muted
+          autoPlay
+          aria-label="Video player"
         />
 
         {/* mini-video @ videoIndex + 1 */}
@@ -163,13 +175,18 @@ const Hero = () => {
             onClick={handleClickSmallVideo}
             className="origin-center overflow-hidden"
           >
-            <VideoWrapper
+            <video
               id="mini-video"
               key={`mini-video-${miniVideoIndex}`}
               ref={miniVideoRef}
-              fileName={`hero-${miniVideoIndex}`}
+              src={videoUrlsMap[miniVideoIndex]}
               onLoadedData={handleOnLoadedData}
               className="scale-75 opacity-0 transition-all size-64 origin-center object-center object-cover duration-500 hover:opacity-100 hover:scale-100"
+              preload="true"
+              loop
+              muted
+              autoPlay
+              aria-label="Video player"
             />
           </div>
         </div>

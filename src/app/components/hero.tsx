@@ -6,7 +6,7 @@ import { FaLocationArrow } from "react-icons/fa6";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/all";
-import { HERO_IMG_NUM } from "../page";
+import { HERO_IMG_NUM } from "@/constants";
 
 type Props = {
   videoUrlsMap: Record<number, string>;

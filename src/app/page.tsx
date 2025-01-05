@@ -1,7 +1,7 @@
+import { HERO_IMG_NUM } from "@/constants";
 import { getVideoUrl } from "./actions/get-video-url";
 import Hero from "./components/hero";
 
-export const HERO_IMG_NUM = 4;
 const HERO_IMG_NAMES = Array.from({ length: HERO_IMG_NUM }, (_, idx) => {
   return `hero-${idx + 1}`;
 });

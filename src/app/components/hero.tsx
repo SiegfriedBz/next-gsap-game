@@ -1,31 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import Cta from "./cta";
 import { FaLocationArrow } from "react-icons/fa6";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/all";
+import { HERO_IMG_NUM } from "@/constants";
 
-const TOTAL_VIDEOS_NUM = 4;
+type Props = {
+  videoUrlsMap: Record<number, string>;
+};
 
-const Hero = () => {
+const Hero = ({ videoUrlsMap }: Props) => {
   const [isClient, setIsClient] = useState(false);
+  const mainVideoRef = useRef<HTMLVideoElement | null>(null);
   const growingVideoRef = useRef<HTMLVideoElement | null>(null);
-  const [videoIndex, setVideoIndex] = useState<number>(0);
+  const miniVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  const currentVideoIdxRef = useRef<number | null>(1);
+  const [videoIndex, setVideoIndex] = useState<number>(1);
   const [hasClicked, setHasClicked] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadedImagesNum, setLoadedImagesNum] = useState<number>(0);
 
-  const mainVideoIndex = useMemo(
-    () => (videoIndex === 0 ? TOTAL_VIDEOS_NUM - 1 : videoIndex - 1),
+  const miniVideoIndex = useMemo(
+    () => (videoIndex === HERO_IMG_NUM ? 1 : videoIndex + 1),
     [videoIndex]
   );
-
-  const getVideoSrc = useCallback((idx: number) => {
-    return `/videos/hero-${idx + 1}.mp4`;
-  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(useGSAP);
@@ -54,7 +56,10 @@ const Hero = () => {
         });
       }
     },
-    { dependencies: [videoIndex, hasClicked, isClient], revertOnUpdate: true }
+    {
+      dependencies: [videoIndex, hasClicked, isClient, growingVideoRef.current],
+      revertOnUpdate: true,
+    }
   );
 
   // add main video cut effect on scroll
@@ -84,14 +89,17 @@ const Hero = () => {
 
   const handleClickSmallVideo = useCallback(() => {
     setHasClicked(true);
-    if (loadedImagesNum < TOTAL_VIDEOS_NUM) {
+    if (loadedImagesNum < HERO_IMG_NUM) {
       setIsLoading(true);
     }
-    setVideoIndex((prev) => (prev + 1 === TOTAL_VIDEOS_NUM ? 0 : prev + 1));
-  }, [loadedImagesNum]);
+
+    currentVideoIdxRef.current = videoIndex;
+
+    setVideoIndex((prev) => (prev + 1 > HERO_IMG_NUM ? 1 : prev + 1));
+  }, [loadedImagesNum, videoIndex]);
 
   const handleOnLoadedData = () => {
-    if (loadedImagesNum <= TOTAL_VIDEOS_NUM) {
+    if (loadedImagesNum <= HERO_IMG_NUM) {
       setLoadedImagesNum((prev) => prev + 1);
       setIsLoading(false);
     }
@@ -136,23 +144,31 @@ const Hero = () => {
         </h2>
 
         <video
-          key={`main-video-${mainVideoIndex}`}
           id="main-video"
-          src={getVideoSrc(mainVideoIndex)}
+          ref={mainVideoRef}
+          key={`main-video-${currentVideoIdxRef.current}`}
+          src={videoUrlsMap[currentVideoIdxRef.current ?? 1]}
+          className="size-full origin-center object-center object-cover"
+          preload="true"
           loop
           muted
           autoPlay
-          className="size-full origin-center object-center object-cover"
+          aria-label="Video player"
         />
+
         <video
-          key={`growing-video-${videoIndex}`}
           id="growing-video"
+          key={`growing-video-${videoIndex}`}
           ref={growingVideoRef}
-          src={getVideoSrc(videoIndex)}
+          src={videoUrlsMap[videoIndex]}
+          className="absolute-center invisible z-20 absolute size-full object-cover object-center"
+          preload="true"
           loop
           muted
-          className="absolute-center invisible z-20 absolute size-full object-cover object-center"
+          autoPlay
+          aria-label="Video player"
         />
+
         {/* mini-video @ videoIndex + 1 */}
         <div className="absolute-center size-64 cursor-pointer z-50 rounded-lg  overflow-hidden">
           <div
@@ -160,18 +176,17 @@ const Hero = () => {
             className="origin-center overflow-hidden"
           >
             <video
-              key={`mini-video-${
-                videoIndex + 1 === TOTAL_VIDEOS_NUM ? 0 : videoIndex + 1
-              }`}
               id="mini-video"
-              src={getVideoSrc(
-                videoIndex + 1 === TOTAL_VIDEOS_NUM ? 0 : videoIndex + 1
-              )}
+              key={`mini-video-${miniVideoIndex}`}
+              ref={miniVideoRef}
+              src={videoUrlsMap[miniVideoIndex]}
+              onLoadedData={handleOnLoadedData}
+              className="scale-75 opacity-0 transition-all size-64 origin-center object-center object-cover duration-500 hover:opacity-100 hover:scale-100"
+              preload="true"
               loop
               muted
               autoPlay
-              onLoadedData={handleOnLoadedData}
-              className="scale-75 opacity-0 transition-all size-64 origin-center object-center object-cover duration-500 hover:opacity-100 hover:scale-100"
+              aria-label="Video player"
             />
           </div>
         </div>

@@ -14,10 +14,7 @@ type Props = {
 
 const Hero = ({ videoUrlsMap }: Props) => {
   const [isClient, setIsClient] = useState(false);
-  const mainVideoRef = useRef<HTMLVideoElement | null>(null);
   const growingVideoRef = useRef<HTMLVideoElement | null>(null);
-  const miniVideoRef = useRef<HTMLVideoElement | null>(null);
-
   const currentVideoIdxRef = useRef<number | null>(1);
   const [videoIndex, setVideoIndex] = useState<number>(1);
   const [hasClicked, setHasClicked] = useState<boolean>(false);
@@ -145,8 +142,7 @@ const Hero = ({ videoUrlsMap }: Props) => {
 
         <video
           id="main-video"
-          ref={mainVideoRef}
-          key={`main-video-${currentVideoIdxRef.current}`}
+          key="main-video"
           src={videoUrlsMap[currentVideoIdxRef.current ?? 1]}
           className="size-full origin-center object-center object-cover"
           preload="true"
@@ -178,7 +174,6 @@ const Hero = ({ videoUrlsMap }: Props) => {
             <video
               id="mini-video"
               key={`mini-video-${miniVideoIndex}`}
-              ref={miniVideoRef}
               src={videoUrlsMap[miniVideoIndex]}
               onLoadedData={handleOnLoadedData}
               className="scale-75 opacity-0 transition-all size-64 origin-center object-center object-cover duration-500 hover:opacity-100 hover:scale-100"
